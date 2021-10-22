@@ -1,0 +1,132 @@
+---
+title: "Quanteda Package"
+subtitle: "Sentiment analysis using the Manifesto Corpus"
+author: "Laura Menicacci, Dinah Rabe"
+date: "04/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Welcome to our tutorial!
+
+In the following minutes we will go through the basics of the **Quanteda** package and make sense of how quantitative text analysis work in R. 
+
+- what you'll find in the following tutorial 
+- how we built it "we tried to add as much useful information as possible but here we will only show sentiment analysis with the ManifestoR database", why we chose to do sentiment analysis ???
+- we will use the ManifestoR library to show some functionalities and how to work with text data
+
+Let's start!
+
+## Basics
+
+Here are the main packages you'll need to install, plus some recommended ones that can help to extend or complete some functionalities (e.g. readtext takes files and returns them in a type of data.frame that can be used directly with the corpus() constructor function). 
+
+```{r cars}
+library(tidyverse)
+library(quanteda)
+library(quanteda.textmodels) #explain why there are three other packages - sister packages to complete quanteda tools
+library(quanteda.textplots)
+library(quanteda.textstats)
+
+library(readtext) #readtext package to read in different types of text data
+library(spacyr) #for part-of-speech tagging (CHECK IF IT IS ACTUALLY USEFUL)
+
+library(newsmap) #to classify documents based on “seed words” in dictionaries (CHECK IF IT IS ACTUALLY USEFUL)
+library(seededlda)#seededlda package to run topic models(CHECK IF IT IS ACTUALLY USEFUL)
+```
+
+# Data Importing
+
+To import data we make use of the **readtext** package. 
+
+## Pre-formatted files
+
+Pre-formatted files are mainly imported in a “spreadsheet format”. **path_data** is the location of sample files that we will use.
+
+```{r}
+path_data <- system.file("extdata/", package = "readtext")
+```
+
+Most of the times, the pre-formatted file is stored with one column containing the text and additional columns storing document-level variables. If this is the case, then we can use read.csv() to import.
+
+```{r}
+dat_inaug <- read.csv(paste0(path_data, "/csv/inaugCorpus.csv"))
+```
+
+Alternatively, it is possible to import character values (comma- or tab-separated). readtext is able to import and read any file containing text and any associated document-level variable, as in this example. 
+
+```{r pressure, echo=FALSE}
+dat_dail <- readtext(paste0(path_data, "/tsv/dailsample.tsv"), text_field = "speech")
+```
+
+# Multiple text files
+
+We can also load multiple text files at once that are stored in the same folder or subfolders. Individual text files usually do not contain document-level variables, but we can create them.
+
+In this example, the directory /txt/UDHR contains text files (".txt”) of the Universal Declaration of Human Rights in 13 languages.
+
+You can generate document-level variables based on the file names using the **docvarnames** and **docvars** from argument. 
+
+- **dvsep = "_"** specifies the value separator in the filenames. 
+- **encoding = "ISO-8859-1"** determines character encodings of the texts.
+
+```{r}
+dat_udhr <- readtext(paste0(path_data, "/txt/UDHR/*"))
+
+dat_eu <- readtext(paste0(path_data, "/txt/EU_manifestos/*.txt"),
+                    docvarsfrom = "filenames", 
+                    docvarnames = c("unit", "context", "year", "language", "party"),
+                    dvsep = "_", 
+                    encoding = "ISO-8859-1")
+str(dat_eu)
+
+#If you are using Windows, you need might need to specify the encoding of the file by adding encoding = "utf-8". In this case, imported texts might appear like <U+4E16><U+754C><U+4EBA><U+6743> but they indicate that Unicode characters are imported correctly.
+```
+
+These are just some of the multiple ways to load data with quanteda. For furher information (e.g. you may want to know how to upload text with different encodings) take a look at https://tutorials.quanteda.io/import-data/. 
+
+TO INCLUDE: how to work with Corpus, how to work with Tokens, how to work with DFM and some statistical analyses
+
+#Working with ManifestoR
+
+load manifestoR package: for this package we need an API key and some specific functions to check availability of data.
+WHAT IS MANIFESTOR? and what is manifesto corpus? 
+"The Manifesto Corpus is a digital text collection of electoral programs based on the collection and coding that was conducted for the generation of the Manifesto Project Main dataset.
+The Manifesto Corpus contains three types of informations: machine-readable texts, meta-information for each document (such as language and title), and (for some documents) annotations/codes on the quasi-sentence level.
+
+we will use data from the latest elections in united kingdom to make a sentiment analysis
+```{r}
+#library(tm)
+#library(NLP)
+
+library(manifestoR)
+
+mp_setapikey(key.file = "manifesto_apikey.txt")
+
+available_uk<- mp_corpus(countryname == "United Kingdom" & date == "201912")
+
+available_uk #we have 10 docs
+names(available_uk)
+
+
+quanteda_corpus <- available_uk %>%
+  as.data.frame(with.meta = TRUE) %>%
+  corpus(docid_field = "manifesto_id", unique_docnames = FALSE) ## quanteda's corpus function
+quanteda_corpus
+
+quanteda_corpus %>%
+  docvars() %>%
+  names() #
+
+```
+
+###CREDITS 
+
+https://tutorials.quanteda.io
+https://manifesto-project.wzb.eu/information/documents/corpus
+https://github.com/quanteda
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
