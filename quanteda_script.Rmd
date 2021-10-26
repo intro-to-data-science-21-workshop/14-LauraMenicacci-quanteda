@@ -187,7 +187,6 @@ feature_frequencies_cat %>%
 
 ```
 
-
 #Keyword in context search 
 
 Quanteda also provides a nice way to view text passages based on certain key words. The kwic (for keyword in context) allows you to use for a text string or pattern.
@@ -216,56 +215,19 @@ brexit_tokens <- scotland_corpus %>%
 
 brexit_dfm <- brexit_tokens %>%
   dfm() %>% 
-  dfm_lookup(data_dictionary_LSD2015[1:2]) 
+  dfm_lookup(data_dictionary_LSD2015) 
 
-brexit_dfm
+brexit_dfm %>% 
+  dfm_group(date)
 
-prova <- brexit_dfm %>% 
-  textstat_frequency(n = 10)
-
-polarity <- data_dictionary_LSD2015) <- 
-  list(pos = c("positive", "neg_negative"), neg = c("negative", "neg_positive"))
-
-sent_scot <- scotland_corpus %>%
-  textstat_polarity(data_dictionary_LSD2015)
-
-sent_scot
-
-ggplot(sent_pres) +
-    geom_point(aes(x = sentiment, y = reorder(doc_id, sentiment))) +
-    ylab("")
 ```
 
 
 Quanteda (and its “sister”-packages quanteda.textstats, quanteda.textplots, quanteda.textmodels) has many more functions. In particular the textstat_* functions of quanteda.textstats are powerful and can well applied to manifestos.
 
-#TEST 
+#other visualizations??  
 
 ```{r}
-quanteda_irish <- mp_corpus(countryname == "Ireland" & date == 201602) %>%
-  recode_v5_to_v4() %>%
-  as.data.frame(with.meta = TRUE) %>%
-  corpus(docid_field = "manifesto_id", unique_docnames = FALSE) %>%
-  tokens(remove_punct = TRUE) %>%
-  tokens_tolower() %>%
-  tokens_remove(stopwords("english")) %>%
-  dfm() %>%
-  dfm_subset(!(cmp_code %in% c("H", "", "0", "000", NA))) %>%
-  dfm_group(cmp_code) %>%
-  dfm_weight(scheme = "prop") %>%
-  dfm_subset(cmp_code %in% c("501", "502", "301", "411"))
-
-quanteda_irish
-
-feature_frequencies_categories <- quanteda_irish %>% textstat_frequency(n = 10, group = cmp_code)
-
-feature_frequencies_categories %>%
-  mutate(cmp_code = factor(group, labels = c("Decentralisation", "Technology & Infrastructure", "Environmental Protection", "Culture"))) %>%
-  ggplot(aes(x = reorder(feature, frequency), y = frequency, fill = cmp_code)) +
-  geom_col(show.legend = FALSE) +
-  labs(x = NULL, y = "share of words per category") +
-  facet_wrap(~cmp_code, ncol = 2, scales = "free") +
-  coord_flip()
 
 ```
 
