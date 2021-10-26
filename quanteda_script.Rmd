@@ -31,12 +31,11 @@ library(quanteda)
 library(quanteda.textmodels) #explain why there are three other packages - sister packages to complete quanteda tools
 library(quanteda.textplots)
 library(quanteda.textstats)
+library(quanteda.sentiment)
 
 library(readtext) #readtext package to read in different types of text data
-library(spacyr) #for part-of-speech tagging (CHECK IF IT IS ACTUALLY USEFUL)
 
-library(newsmap) #to classify documents based on “seed words” in dictionaries (CHECK IF IT IS ACTUALLY USEFUL)
-library(seededlda)#seededlda package to run topic models(CHECK IF IT IS ACTUALLY USEFUL)
+
 ```
 
 # Data Importing
@@ -97,6 +96,7 @@ load manifestoR package: for this package we need an API key and some specific f
 WHAT IS MANIFESTOR? and what is manifesto corpus? 
 "The Manifesto Corpus is a digital text collection of electoral programs based on the collection and coding that was conducted for the generation of the Manifesto Project Main dataset.
 The Manifesto Corpus contains three types of informations: machine-readable texts, meta-information for each document (such as language and title), and (for some documents) annotations/codes on the quasi-sentence level.
+----> EXPLAIN CMP CODES!
 
 we will use data from the latest elections in united kingdom to make a sentiment analysis
 ```{r}
@@ -108,8 +108,8 @@ library(manifestoR)
 mp_setapikey(key.file = "manifesto_apikey.txt")
 
 available_uk<- mp_corpus(countryname == "United Kingdom") #function to download docs from manifesto project, we chose last manifestos in UK 
-
-available_uk #we have 10 docs
+ 
+available_uk #71 docs
 names(available_uk)
 
 manifesto_corpus <- available_uk %>%
@@ -134,8 +134,7 @@ We will do our sentiment analysis only with some parties in the English parliame
 
 ```{r}
 scotland_corpus <- manifesto_corpus %>%
-  corpus_subset(party == "51902") %>%
-  as.character()
+  corpus_subset(party == "51902")
 
 ```
 
@@ -145,9 +144,7 @@ Tokenization is particularly important for pre-processing and cleaning the texts
 
 ```{r}
 tokenized_manifesto <- scotland_corpus %>%
-  tokens()
-
-tokenized_manifesto %>%
+  tokens() %>% 
   tokens(remove_punct = TRUE, remove_numbers = TRUE) %>%
   tokens_tolower() %>%
   tokens_remove(stopwords("english")) %>%
@@ -157,37 +154,118 @@ tokenized_manifesto %>%
 
 #Constructing a document-feature-matrix with dfm
 
-```{r}
-manifesto_dfm <- tokenized_manifesto %>% 
-  dfm()
-
-manifesto_dfm %>% 
-  dfm_subset(!(cmp_code %in% c("H", "", "0", "000", NA))) %>% 
-  #dfm_group(cmp_code) %>% 
-  dfm_weight(scheme = "prop") #%>% 
-  #dfm_subset(cmp_code %in% c("501", "502", "301", "411")) 
-
-```
-
-What did we do here?
-
+-function dfm()
 - drop all quasi-sentences with headline codes (“H”), uncoded (“0”,“000”) and with codes missing (NA). 
 - combine all quasi-sentences coded with the same code to one document
 - Term frequencies can be transformed using the dfm_weight function. Here, we use it to calculate the proportion of words per document (scheme = "prop").
-- then subset the dfm for four features of four specific codes.
+- then subset the dfm for two features of four specific codes: 108: european union positive, 110: european union negative, 301: federalism
+
+
+```{r}
+manifesto_dfm <- tokenized_manifesto %>% 
+  dfm() %>% 
+  dfm_subset(!(cmp_code %in% c("H", "", "0", "000", NA))) %>% 
+  dfm_group(cmp_code) %>% 
+  dfm_weight(scheme = "prop") %>% 
+  dfm_subset(cmp_code %in% c("301", "110", "108")) 
+
+```
+
 
 #Plotting frequencies
+
 ```{r}
 feature_frequencies_cat <- manifesto_dfm %>% textstat_frequency(n = 10, group = cmp_code)
 
 feature_frequencies_cat %>%
+  mutate(cmp_code = factor(group, labels = c("European Union: Positive", "Federalism", "European Union: Negative"))) %>%
+  ggplot(aes(x = reorder(feature, frequency), y = frequency, fill = cmp_code)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "share of words per category") +
+  facet_wrap(~cmp_code, ncol = 2, scales = "free") +
+  coord_flip()
+
+```
+
+
+#Keyword in context search 
+
+Quanteda also provides a nice way to view text passages based on certain key words. The kwic (for keyword in context) allows you to use for a text string or pattern.
+
+```{r}
+
+scotland_corpus %>%
+  tokens() %>%
+  kwic(phrase("brexit"), window = 10) %>%
+  DT::datatable(caption = "Keywords in context", rownames = FALSE, options = list(scrollX = TRUE, pageLength = 5, lengthMenu = c(5, 10, 15, 20)))
+
+
+```
+
+#Targeted sentiment analysis
+
+Quanteda facilitates dictionary based searchs. The following example illustrates how to conduct a targeted sentiment analysis. We use the corpus created above based on Scotland party and tokenize it into words. We then keep only tokens that include the word “President” as well as the ten words before and after every occurence of “Brexit”.
+
+Quanteda has integrated a sentiment dictionary constructed by Young & Soroka (2012) stored in data_dictionary_LSD2015. The dictionary contains thousands of positive and negative words or word stems.
+
+
+```{r}
+brexit_tokens <- scotland_corpus %>%
+  tokens()
+  tokens_select("Brexit", selection = "keep", valuetype = "glob", case_insensitive = TRUE, window = 10, padding = FALSE, verbose = TRUE)
+
+brexit_dfm <- brexit_tokens %>%
+  dfm() %>% 
+  dfm_lookup(data_dictionary_LSD2015[1:2]) 
+
+brexit_dfm
+
+prova <- brexit_dfm %>% 
+  textstat_frequency(n = 10)
+
+polarity <- data_dictionary_LSD2015) <- 
+  list(pos = c("positive", "neg_negative"), neg = c("negative", "neg_positive"))
+
+sent_scot <- scotland_corpus %>%
+  textstat_polarity(data_dictionary_LSD2015)
+
+sent_scot
+
+ggplot(sent_pres) +
+    geom_point(aes(x = sentiment, y = reorder(doc_id, sentiment))) +
+    ylab("")
+```
+
+
+Quanteda (and its “sister”-packages quanteda.textstats, quanteda.textplots, quanteda.textmodels) has many more functions. In particular the textstat_* functions of quanteda.textstats are powerful and can well applied to manifestos.
+
+#TEST 
+
+```{r}
+quanteda_irish <- mp_corpus(countryname == "Ireland" & date == 201602) %>%
+  recode_v5_to_v4() %>%
+  as.data.frame(with.meta = TRUE) %>%
+  corpus(docid_field = "manifesto_id", unique_docnames = FALSE) %>%
+  tokens(remove_punct = TRUE) %>%
+  tokens_tolower() %>%
+  tokens_remove(stopwords("english")) %>%
+  dfm() %>%
+  dfm_subset(!(cmp_code %in% c("H", "", "0", "000", NA))) %>%
+  dfm_group(cmp_code) %>%
+  dfm_weight(scheme = "prop") %>%
+  dfm_subset(cmp_code %in% c("501", "502", "301", "411"))
+
+quanteda_irish
+
+feature_frequencies_categories <- quanteda_irish %>% textstat_frequency(n = 10, group = cmp_code)
+
+feature_frequencies_categories %>%
   mutate(cmp_code = factor(group, labels = c("Decentralisation", "Technology & Infrastructure", "Environmental Protection", "Culture"))) %>%
   ggplot(aes(x = reorder(feature, frequency), y = frequency, fill = cmp_code)) +
   geom_col(show.legend = FALSE) +
   labs(x = NULL, y = "share of words per category") +
   facet_wrap(~cmp_code, ncol = 2, scales = "free") +
   coord_flip()
-```
 
 ```
 
