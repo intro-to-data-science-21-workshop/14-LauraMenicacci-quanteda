@@ -29,7 +29,7 @@ Let's start!
 Here you find the main packages you'll need to install, plus some recommended ones that can help to extend or complete some functionalities (e.g. readtext takes files and returns them in a type of data.frame that can be used directly with the corpus() constructor function).
 
 ```{r}
-install.packages("tidyverse", "quanteda")
+#install.packages("tidyverse", "quanteda")
 ```
 
 
@@ -190,7 +190,7 @@ manifesto_dfm
 
 #Plotting frequencies
 
-If you may want to plot the most frequent terms, then the textstat_frequency() function fits perfectly for you. It simply extracts the most frequent terms (here grouped by cmp_code) and converts them to a data.frame that can be plotted with the ggplot package
+Going through a classical quantitative text analysis, you may want to plot the most frequent terms, both for exploratory and explanatory purposes. Then, the `textstat_frequency()` function fits perfectly for you. It simply extracts the most frequent terms (here grouped by the cmp_code we chose precedently) and converts them to a data frame that here is plotted with the ggplot package. 
 .
 ```{r}
 feature_frequencies_cat <- manifesto_dfm %>% textstat_frequency(n = 10, group = cmp_code)
@@ -210,13 +210,15 @@ feature_frequencies_cat %>%
 
 #Keyword in context search 
 
-Quanteda also provides a nice way to view text passages based on certain key words. The kwic (for keyword in context) allows you to use for a text string or pattern.
+Quanteda also provides an effective method for reading text passages based on  key words. `kwic()` ("keyword in context") allows to do it for a text string or pattern.
+
+Specifically here we choose the keyword "brexit", and we select the 10 words around (before and after) that specific word. 
 
 ```{r}
 
 scotland_corpus %>%
   tokens() %>%
-  kwic(phrase("brexit"), window = 10) %>%
+  kwic(phrase("brexit"), window = 10) %>% 
   DT::datatable(caption = "Keywords in context", rownames = FALSE, options = list(scrollX = TRUE, pageLength = 5, lengthMenu = c(5, 10, 15, 20)))
 
 
@@ -224,16 +226,14 @@ scotland_corpus %>%
 
 #Targeted sentiment analysis
 
-Quanteda facilitates dictionary based searchs. The following example illustrates how to conduct a targeted sentiment analysis. We use the corpus created above based on Scotland party and tokenize it into words. We then keep only tokens that include the word “President” as well as the ten words before and after every occurence of “Brexit”.
+Quanteda is also useful if we want to perform sentiment analyises. In the following example we perform targeted sentiment analysis. We use the whole manifesto corpus loaded at the beginning and tokenize it into words. We then keep only tokens that include the word “Brexit” as well as the ten words before and after every occurence of it. 
 
-Quanteda has integrated a sentiment dictionary constructed by Young & Soroka (2012) stored in data_dictionary_LSD2015. The dictionary contains thousands of positive and negative words or word stems.
-
+We use the sentiment dictionary constructed by Young & Soroka (2012) that is integrated in the package, stored in `data_dictionary_LSD2015`. It contains thousands of positive and negative words or word stems.
 
 ```{r}
 brexit_tokens <- manifesto_corpus %>%
-  #corpus_subset(party %in% c("513202", "51420")) %>%  #labour and liberal 
   tokens() %>% 
-  tokens_select("Brexit", selection = "keep", window = 10, padding = FALSE, verbose = TRUE)
+  tokens_select("brexit", selection = "keep", window = 20, padding = FALSE, verbose = TRUE)
 
 brexit_sent <- brexit_tokens %>%
   dfm() %>% 
@@ -252,15 +252,29 @@ Quanteda (and its “sister”-packages quanteda.textstats, quanteda.textplots, 
 
 
 ```{r}
-dict_output <- convert(brexit_sent, to = "data.frame")
+sent_df <- convert(brexit_sent, to = "data.frame")
 
-dict_output$sent_score <- log((dict_output$positive + 0.5) / (dict_output$negative + 0.5))
-dict_output <- cbind(dict_output, docvars(manifesto_corpus))
+sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
 
-tplot_sent <- ggplot(dict_output, aes(x =doc_id , y = reorder(sent_score)) + geom_point(size = 3) +
-coord_flip() + labs(x = "Parties", y = "Estimated sentiment"))
+sent_df %>% 
+  pivot_longer(c(positive, negative)) %>% 
+  ggplot(aes(x = reorder(doc_id, sent_score), y = sent_score), fill =  as.factor(name)) + 
+  geom_point(size = 3) +
+  coord_flip() + 
+  labs(x = "Parties", y = "Estimated sentiment")
 
-tplot_sent
+###TO DO
+#CHANGE NAME OF PARTIES
+#COLOUR GRADIENT OF DOTS
+
+###PROVAggplot(dict_output,
+aes(x = reorder(name, sent_score),
+y = sent_score,
+colour = gov_opp)) +
+geom_point(size = 3) +
+coord_flip() +
+labs(x = "Speaker", y = "t")
+
 ```
 
 
