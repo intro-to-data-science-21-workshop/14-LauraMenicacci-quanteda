@@ -267,13 +267,6 @@ sent_df %>%
 #CHANGE NAME OF PARTIES
 #COLOUR GRADIENT OF DOTS
 
-###PROVAggplot(dict_output,
-aes(x = reorder(name, sent_score),
-y = sent_score,
-colour = gov_opp)) +
-geom_point(size = 3) +
-coord_flip() +
-labs(x = "Speaker", y = "t")
 
 ```
 
