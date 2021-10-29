@@ -257,7 +257,6 @@ brexit_sent <- brexit_tokens %>%
   dfm_group(party)
 
 print(brexit_sent)
-  
 
 ```
 
@@ -271,32 +270,32 @@ We convert frequencies to a new measure score ("sent_score") where parties with 
 ```{r}
 sent_df <- brexit_sent %>% 
   convert(to = "data.frame") %>% 
-  rename(party = doc_id)
+  rename(party = doc_id) %>% 
+  pivot_longer(c(positive, negative)) %>% 
+  ggplot(aes(x = ,value,fill=variable))+
+      geom_bar(position="dodge",stat="identity"))
 
-MPD_uk_parties %>% 
-  as.character(party)
-  
-test<- left_join(sent_df, MPD_uk_parties, by = "party")
-  
+
+
+MPD_uk_parties<-  MPD_uk_parties %>% 
+  as.character("party")
 
 sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
 
-
+test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
 
 sent_df %>% 
-  l %>% 
   pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = reorder(partyname, sent_score), y = sent_score), fill =  as.factor(name)) + 
+  ggplot(aes(x = reorder(party, sent_score), y = sent_score), fill =  as.factor(name)) + 
   geom_point(size = 3) +
   coord_flip() + 
   labs(x = "Parties", y = "Estimated sentiment")
  
 
 ###TO DO
-#CHANGE NAME OF PARTIES
 #change numbers on x axis
-#subset excel file 
 #change names of parties
+#do a frequency plot
 
 ```
 
