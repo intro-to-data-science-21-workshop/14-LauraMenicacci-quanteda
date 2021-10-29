@@ -6,8 +6,8 @@ date: "04/11/2021"
 output: 
   html_document:
   toc: true
-  toc_float: true
   toc_collapsed: true
+  toc_float: true
 toc_depth: 3
 number_sections: true
 theme: lumen
@@ -36,7 +36,9 @@ Let's start!
 Here you find the main packages you'll need to install, plus some recommended ones that can help to extend or complete some functionalities (e.g. readtext takes files and returns them in a type of data.frame that can be used directly with the corpus() constructor function).
 
 ```{r}
-#install.packages("tidyverse", "quanteda")
+#install.packages("tidyverse")
+#install.packages("quanteda")
+#install.packages("quanteda")
 ```
 
 
@@ -106,7 +108,7 @@ str(dat_eu)
 These are just some of the multiple ways to load data with quanteda. For furher information (if you may want to know how to upload text with different encodings) take a look at https://tutorials.quanteda.io/import-data/. 
 
 
-#Working with ManifestoR - Corpus
+# Working with ManifestoR - Corpus
 
 To load the Manifesto Corpus, which is a subclass of a `Corpus` object - the one we need to perform a text analysis - we need to load a specific package ManifestoR. 
 
@@ -143,7 +145,7 @@ manifesto_corpus %>%
 
 ```
 
-#Subsetting the Corpus
+# Subsetting the Corpus
 
 We will do the following analyses using only one party in the English parliament. We will take the Scottish National Party, subsetting the corpus with `corpus_subset()` and indicating a logical condition corresponding to the code of the party. 
 
@@ -156,7 +158,7 @@ scotland_corpus <- manifesto_corpus %>%
 
 ```
 
-#Tokenization
+# Tokenization
 
 Tokenization is particularly important for pre-processing and cleaning the texts. It is possible to easily remove numbers, punctuation or stopwords. Moreover, it is simple to transform all text to lower case or stem words. 
 
@@ -172,7 +174,7 @@ tokenized_manifesto <- scotland_corpus %>%
 tokenized_manifesto
 ```
 
-#Document-Feature-Matrix
+# Document-Feature-Matrix
 
 We are now able to construct our document-feature matrix. 
 
@@ -196,7 +198,7 @@ manifesto_dfm
 ```
 
 
-#Plotting frequencies
+# Plotting frequencies
 
 Going through a classical quantitative text analysis, you may want to plot the most frequent terms, both for exploratory and explanatory purposes. Then, the `textstat_frequency()` function fits perfectly for you. It simply extracts the most frequent terms (here grouped by the cmp_code we chose precedently) and converts them to a data frame that here is plotted with the ggplot package. 
 .
@@ -213,7 +215,7 @@ feature_frequencies_cat %>%
 
 ```
 
-#Keyword in context search 
+# Keyword in context search 
 
 Quanteda also provides an effective method for reading text passages based on  key words. `kwic()` ("keyword in context") allows to do it for a text string or pattern.
 
@@ -229,7 +231,7 @@ scotland_corpus %>%
 
 ```
 
-#Targeted sentiment analysis
+# Targeted sentiment analysis
 
 Quanteda is also useful if we want to perform sentiment analyisis. In the following example we perform targeted sentiment analysis. We use the whole manifesto corpus loaded at the beginning and tokenize it into words. We then keep only tokens that include the word “Brexit” as well as the ten words before and after every occurence of it. 
 
@@ -250,7 +252,7 @@ print(brexit_sent)
 
 ```
 
-#Plotting sentiment analysis
+# Plotting sentiment analysis
 
 ```{r}
 sent_df <- convert(brexit_sent, to = "data.frame")
@@ -274,7 +276,7 @@ sent_df %>%
 ```
 
 
-###CREDITS 
+## CREDITS 
 
 https://tutorials.quanteda.io
 https://github.com/quanteda
