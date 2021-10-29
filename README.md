@@ -23,6 +23,7 @@ The goals of this session are to (1) make you familiar with the idea possible ap
 ## Further resources
 
 - [quanteda overview at quanteda.io ](https://quanteda.io/)
+- [quanteda cheat sheet ](https://raw.githubusercontent.com/rstudio/cheatsheets/master/quanteda.pdf)
 - [Hands-on quanteda tutorial](https://tutorials.quanteda.io/)
 - [Workshop-slides by quanteda creator Kenneth Bennoit](https://www.uni-muenster.de/imperia/md/content/ifpol/grasp/2019-06-27_muenster.pdf)
 - [More about the Manifesto Project ](manifesto-project.wzb.eu/)
@@ -36,4 +37,4 @@ The material in this repository is made available under the [MIT license](http:/
 
 **Laura Menicacci** prepared the practice material
 
-**Dinah Rabe** prepared the presentation slides and made recording
+**Dinah Rabe** prepared the presentation slides and made the recording
