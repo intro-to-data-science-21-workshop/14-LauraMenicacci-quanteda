@@ -264,38 +264,45 @@ print(brexit_sent)
 
 To plot our sentiment analysis, we use the subsetted dataframe from MPDataset and we join it with our sent_df to get the name of the parties. 
 
-We convert frequencies to a new measure score ("sent_score") where parties with more negative words relative to positive ones get a sent_score<0 and parties with more positive words relative to negative ones get a sent_score>0. Parties with a sent_score=0 are the ones which do not have the word Brexit in their electoral programmes, thus the dictionary did not label them. 
+Here you can see two plots. The first illustrates frequencies of positive and negative words targeted to the word "Brexit" for each UK party. 
+
+In the second plot, we converted frequencies to a new measure score ("sent_score") where parties with more negative words relative to positive ones get a sent_score<0 and parties with more positive words relative to negative ones get a sent_score>0. Parties with a sent_score=0 are the ones which do not have the word Brexit in their electoral programmes, thus the dictionary did not label them. 
 
 
 ```{r}
 sent_df <- brexit_sent %>% 
   convert(to = "data.frame") %>% 
-  rename(party = doc_id) %>% 
+  subset(!(doc_id %in% c("51330", "51420", "51621"))) %>% 
+  rename(party = doc_id) 
+
+sent_df %>%
   pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = ,value,fill=variable))+
-      geom_bar(position="dodge",stat="identity"))
+  ggplot(aes(x = value, y = party , fill= as.factor(name)))+
+  geom_bar(position="dodge", stat="identity", width= 0.5) +
+  #geom_segment(aes(xend=0, yend=party), color = "skyblue") +
+  #geom_point(size=3, fill =  alpha = 0.5) +
+  labs(title = "Sentiment frequency plot for 'Brexit'", y = "UK Parties", x = "Frequency", fill = "sentiment") +
+  theme_minimal()
 
 
-
-MPD_uk_parties<-  MPD_uk_parties %>% 
-  as.character("party")
+#MPD_uk_parties<-  MPD_uk_parties %>% 
+#  as.character("party")
+#test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
 
 sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
 
-test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
-
 sent_df %>% 
   pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = reorder(party, sent_score), y = sent_score), fill =  as.factor(name)) + 
-  geom_point(size = 3) +
+  ggplot(aes(x = reorder(party, sent_score), y = sent_score)) + 
+  geom_point(size = 3, colour = "skyblue") +
   coord_flip() + 
-  labs(x = "Parties", y = "Estimated sentiment")
+  labs(x = "Parties", y = "Estimated sentiment", ) +
+  scale_y_continuous(breaks = c( -1, 0, 1), labels = c("negative", "neutral", "positive")) +
+  theme_bw()
  
 
 ###TO DO
-#change numbers on x axis
 #change names of parties
-#do a frequency plot
 
 ```
 
