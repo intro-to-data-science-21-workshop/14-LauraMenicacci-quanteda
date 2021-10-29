@@ -1,6 +1,6 @@
 ---
 title: "Quanteda Package"
-subtitle: "Sentiment analysis using the Manifesto Corpus" #maybe "Quantitative Text analysis in R using the Manifesto Corpus"
+subtitle: "Quantitative Text analysis in R using the Manifesto Corpus"
 author: "Laura Menicacci, Dinah Rabe"
 date: "04/11/2021"
 output: 
@@ -9,6 +9,7 @@ output:
     toc_collapsed: true
     toc_float: true
     toc_depth: 3
+    code_folding: show
     number_sections: false
     theme: lumen
     highlight: tango
@@ -27,13 +28,13 @@ In this session you will learn to:
 * load and work with text databases
 * create the basic elements for a proper QTA, namely Corpus, Tokens, and a Document-Feature Matrix
 * proceed with some statistical analyses of texts
-* try out some unsupervised learning bites, in particular sentiment analysis
+* try out some sentiment analysis for our subset
 
 As already mentioned in the slides, we will make use of the Manifesto Project Database (see more on https://manifesto-project.wzb.eu/). 
 
 **Let's start!**
 
-##Necessary packages
+## Necessary packages
 
 Here you find the main packages you'll need to install, plus some recommended ones that can help to extend or complete some functionalities (e.g. readtext takes files and returns them in a type of data.frame that can be used directly with the corpus() constructor function).
 
@@ -46,7 +47,6 @@ Here you find the main packages you'll need to install, plus some recommended on
 
 
 ```{r}
-
 library(tidyverse)
 library(quanteda)
 
@@ -55,7 +55,6 @@ library(quanteda)
 library(quanteda.textstats)
 
 library(readtext)
-
 ```
 
 For our tutorial we don't need the other extension packages (.textmodels & .textplots), but maybe you need them for future use cases, so we included them in the code snippet.
@@ -64,7 +63,7 @@ For our tutorial we don't need the other extension packages (.textmodels & .text
 
 Since we are using the online database of the Manifesto Project for our tutorial, the way we import the data is a bit *special* (using an API-key). Normally, you maybe want to import a pre-formatted file that you have stored on your computer, or multiple files that are stored in a folder. In the following, you find some explanations how to import these kinds of data. 
 
-As examples we will use the included data of the quanteda package. It is data about the Inaugural Speeches of American Presidents (you will find this data in almost all tutorials that are online).To import data we use the **readtext** package. 
+As examples we will use the included data of the quanteda package. It is data about the Inaugural Speeches of American Presidents (you will find this data in almost all tutorials that are online). To import data we use the **readtext** package. 
 
 ## Pre-formatted files
 
@@ -90,7 +89,7 @@ dat_dail <- readtext(paste0(path_data, "/tsv/dailsample.tsv"), text_field = "spe
 
 We can also load multiple text files at once that are stored in the same folder or subfolders. Individual text files usually do not contain document-level variables, but we can create them.
 
-In this example, the directory /txt/UDHR contains text files (".txt”) of the Universal Declaration of Human Rights in 13 languages.
+In this example, the directory "/txt/UDHR" contains text files (".txt”) of the Universal Declaration of Human Rights in 13 languages.
 
 You can generate document-level variables based on the file names using the **docvarnames** and **docvars** from argument. 
 
@@ -107,7 +106,7 @@ dat_eu <- readtext(paste0(path_data, "/txt/EU_manifestos/*.txt"),
                     encoding = "ISO-8859-1")
 str(dat_eu)
 
-#If you are using Windows, you need might need to specify the encoding of the file by adding encoding = "utf-8". In this case, imported texts might appear like <U+4E16><U+754C><U+4EBA><U+6743> but they indicate that Unicode characters are imported correctly.
+#If you are using Windows, you might need to specify the encoding of the file by adding encoding = "utf-8". In this case, imported texts might appear like <U+4E16><U+754C><U+4EBA><U+6743> but they indicate that Unicode characters are imported correctly.
 ```
 
 These are just some of the multiple ways to load data with quanteda. For furher information (if you may want to know how to upload text with different encodings) take a look at https://tutorials.quanteda.io/import-data/. 
@@ -115,16 +114,18 @@ These are just some of the multiple ways to load data with quanteda. For furher 
 
 # Working with ManifestoR - Corpus
 
-To load the Manifesto Corpus, which is a subclass of a `Corpus` object - the one we need to perform a text analysis - we need to load a specific package ManifestoR. 
+To load the Manifesto Corpus, which is a subclass of a `Corpus` object - the one we need to perform a text analysis - we need to load a specific package: ManifestoR. 
 
 With the function `mp_setapikey` we can easily load the API key that is needed in order to access the website. We then use the `mp_corpus` function to access documents in the ManifestoCorpus that we can directly use for our analysis.  
 
-As we know from the presentation, a Corpus consists of many documents. In the `ManifestoCorpus`, documents can be indexed via their `manifesto_id`, which is an identification code formed by the CMP party code, an underscore, and either the election year, if unambiguous, or the election year and month or via their position in the corpus. For further information check their amazing tutorial on [using the Manifesto Corpus with quanteda](https://manifesto-project.wzb.eu/down/tutorials/quanteda)
+As we know from the presentation, a Corpus consists of many documents. In the `ManifestoCorpus`, documents can be indexed via their `manifesto_id`, which is an identification code formed by the CMP party code, an underscore, and either the election year, if unambiguous, or the election year and month or via their position in the corpus. For further information check their amazing tutorial on [using the Manifesto Corpus with quanteda](https://manifesto-project.wzb.eu/down/tutorials/quanteda). 
 
 ## Our subset for this tutorial
-We will use data from the election programmes in the United Kingdom to perform some basics of quantitative text analysis and a sentiment analysis. 
+We will use data from the electoral programmes in the United Kingdom to perform some basics of quantitative text analysis and a sentiment analysis. With the function `names(uk_electoral_programmes)`we can visualize how documents are named. The names indeed consist of the code of the parties on the left of underscore, and the date of the documents on the right side of the underscore.
 
 We use the quanteda `corpus()` to create the Corpus object from available sources, letting it auto-generate document names based on the manifesto_id and a within document running number, as we can see in `corpus(docid_field = "manifesto_id", unique_docnames = FALSE)`. 
+
+It is also useful to understand how document-level variables are structured with `docvars()`, since they represent metadata information. 
 
 ```{r}
 # install.packages("manifestoR")
@@ -132,22 +133,17 @@ library(manifestoR)
 
 mp_setapikey(key.file = "manifesto_apikey.txt")
 
-uk_election_programmes <- mp_corpus(countryname == "United Kingdom") 
+uk_electoral_programmes <- mp_corpus(countryname == "United Kingdom") 
+uk_electoral_programmes
 
-uk_election_programmes
-names(uk_election_programmes) #do we want to have that in the html as output?
-
-manifesto_corpus <- uk_election_programmes %>%
+manifesto_corpus <- uk_electoral_programmes %>%
   as.data.frame(with.meta = TRUE) %>%
   corpus(docid_field = "manifesto_id", unique_docnames = FALSE) %>% 
-  #docvars(field = "cmp_code") %>% 
   corpus() 
-
 manifesto_corpus
 
 manifesto_corpus %>%
-  docvars() %>% 
-  names() #meta data information
+  docvars() 
 
 
 ```
@@ -156,10 +152,18 @@ manifesto_corpus %>%
 
 We will do the following analyses using only one party in the English parliament. We will take the Scottish National Party, subsetting the corpus with `corpus_subset()` and indicating a logical condition corresponding to the code of the party. 
 
-METTI LINK PER TROVARE I CODICI DEI PARTIES # i guess that means that we need to inlucde a link where people find the parties codes? ;)
+To check to which code the Scottish National Party corresponds, we looked at the MPDataset, containing all the information on the electoral programs, and we quickly subsetted it for our purposes. 
 
 
 ```{r}
+library(readr)
+MPDataset <- read_csv("MPDataset_MPDS2021a.csv")
+
+MPD_uk_parties <- MPDataset %>% 
+  subset(countryname == "United Kingdom") %>% 
+  select(party, partyname) %>% 
+  distinct()
+
 scotland_corpus <- manifesto_corpus %>%
   corpus_subset(party == "51902")
 
@@ -185,10 +189,9 @@ tokenized_manifesto
 
 We are now able to construct our document-feature matrix. 
 
-The ManifestoCorpus requires also some stardand preprocessing and specific subsetting regarding cmp codes and the quasi-sentences structure. 
+The ManifestoCorpus requires some stardand preprocessing, plus since we want to analyse specific topics regarding the Scottish National Party, we subset specific cmp codes and the documents structure. 
 
 In this code snippet we follow this process:
-
 * drop all quasi-sentences with headline codes (“H”), uncoded (“0”,“000”) and with codes missing (NA). 
 * group all quasi-sentences coded with the same code to one document
 * transform term frequencies using the `dfm_weight()` function that to count the proportion of words per document `(scheme = "prop")`.
@@ -205,10 +208,11 @@ manifesto_dfm <- tokenized_manifesto %>%
 manifesto_dfm
 ```
 
+# Some explorative analysis
 
-# Plotting frequencies
+## Plotting frequencies
 
-Going through a classical quantitative text analysis, you may want to plot the most frequent terms, both for exploratory and explanatory purposes. Then, the `textstat_frequency()` function fits perfectly for you. It simply extracts the most frequent terms (here grouped by the cmp_code we chose precedently) and converts them to a data frame that here is plotted with the ggplot package. 
+Going through a classical quantitative text analysis, you may want to plot the most frequent terms, especially for exploratory purposes. Then the `textstat_frequency()` function fits perfectly for you. It simply extracts the most frequent terms (here grouped by the cmp codes we chose precedently) and converts them to a data frame that here is plotted with the ggplot package. 
 .
 ```{r}
 feature_frequencies_cat <- manifesto_dfm %>% textstat_frequency(n = 10, group = cmp_code)
@@ -225,20 +229,17 @@ feature_frequencies_cat %>%
 
 ## Keyword in context search 
 
-Quanteda also provides an effective method for reading text passages based on  key words. `kwic()` ("keyword in context") allows to do it for a text string or pattern.
-
-Specifically here we choose the keyword "brexit", and we select the 10 words around (before and after) that specific word. 
+Quanteda also provides an effective method for reading text passages based on key words. `kwic()` ("keyword in context") allows to do it for a text string or pattern. 
+Specifically here we choose the keyword "Brexit", and we select the 10 words around (before and after) that specific word. 
 
 ```{r}
-
 scotland_corpus %>%
   tokens() %>%
   kwic(phrase("brexit"), window = 10) %>% 
   DT::datatable(caption = "Keywords in context", rownames = FALSE, options = list(scrollX = TRUE, pageLength = 5, lengthMenu = c(5, 10, 15, 20)))
 
-
 ```
-
+ 
 # Targeted sentiment analysis
 
 Quanteda is also useful if we want to perform sentiment analysis. In the following example we perform targeted sentiment analysis. We use the whole manifesto corpus loaded at the beginning and tokenize it into words. We then keep only tokens that include the word “Brexit” as well as the ten words before and after every occurrence of it. 
@@ -248,7 +249,7 @@ We use the sentiment dictionary constructed by Young & Soroka (2012) that is int
 ```{r}
 brexit_tokens <- manifesto_corpus %>%
   tokens() %>% 
-  tokens_select("brexit", selection = "keep", window = 20, padding = FALSE, verbose = TRUE)
+  tokens_select("Brexit", selection = "keep", window = 20, padding = FALSE, verbose = TRUE)
 
 brexit_sent <- brexit_tokens %>%
   dfm() %>% 
@@ -260,16 +261,32 @@ print(brexit_sent)
 
 ```
 
-# Plotting sentiment analysis
+## Plotting sentiment analysis
+
+To plot our sentiment analysis, we use the subsetted dataframe from MPDataset and we join it with our sent_df to get the name of the parties. 
+
+We convert frequencies to a new measure score ("sent_score") where parties with more negative words relative to positive ones get a sent_score<0 and parties with more positive words relative to negative ones get a sent_score>0. Parties with a sent_score=0 are the ones which do not have the word Brexit in their electoral programmes, thus the dictionary did not label them. 
+
 
 ```{r}
-sent_df <- convert(brexit_sent, to = "data.frame")
+sent_df <- brexit_sent %>% 
+  convert(to = "data.frame") %>% 
+  rename(party = doc_id)
+
+MPD_uk_parties %>% 
+  as.character(party)
+  
+test<- left_join(sent_df, MPD_uk_parties, by = "party")
+  
 
 sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
 
+
+
 sent_df %>% 
+  l %>% 
   pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = reorder(doc_id, sent_score), y = sent_score), fill =  as.factor(name)) + 
+  ggplot(aes(x = reorder(partyname, sent_score), y = sent_score), fill =  as.factor(name)) + 
   geom_point(size = 3) +
   coord_flip() + 
   labs(x = "Parties", y = "Estimated sentiment")
@@ -286,9 +303,11 @@ sent_df %>%
 
 # CREDITS 
 
-https://tutorials.quanteda.io
-
 https://github.com/quanteda
+
+Benoit K, Watanabe K, Wang H, Nulty P, Obeng A, Müller S, Matsuo A (2018). “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software, 3(30), 774. doi: 10.21105/joss.00774, https://quanteda.io.
+
+Young, L and S Soroka. (2012). “Affective News: The Automated Coding of Sentiment in Political Texts.” Political Communication 29(2): 205-231.
 
 Burst, Tobias / Krause, Werner / Lehmann, Pola / Lewandowski, Jirka / Matthieß, Theres / Merz, Nicolas / Regel, Sven / Zehnter, Lisa (2021): Manifesto Corpus. Version: 2021-1. Berlin: WZB Berlin Social Science Center.
 
