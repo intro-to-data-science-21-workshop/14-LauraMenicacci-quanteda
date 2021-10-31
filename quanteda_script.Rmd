@@ -27,8 +27,8 @@ In this session you will learn to:
 
 * load and work with text databases
 * create the basic elements for a proper QTA, namely Corpus, Tokens, and a Document-Feature Matrix
-* proceed with some statistical analyses of texts
-* try out some sentiment analysis for our subset
+* proceed with some exploratory analysis of texts
+* try out some sentiment analysis of UK electoral programmes
 
 As already mentioned in the slides, we will make use of the Manifesto Project Database (see more on https://manifesto-project.wzb.eu/). 
 
@@ -93,9 +93,8 @@ In this example, the directory "/txt/UDHR" contains text files (".txt”) of the
 
 You can generate document-level variables based on the file names using the **docvarnames** and **docvars** from argument. 
 
-- **dvsep = "_"** specifies the value separator in the filenames. 
+- **\dvsep = "_"\** specifies the value separator in the filenames. 
 - **encoding = "ISO-8859-1"** determines character encodings of the texts.
-
 ```{r}
 dat_udhr <- readtext(paste0(path_data, "/txt/UDHR/*"))
 
@@ -114,7 +113,7 @@ These are just some of the multiple ways to load data with quanteda. For furher 
 
 # Working with ManifestoR - Corpus
 
-To load the Manifesto Corpus, which is a subclass of a `Corpus` object - the one we need to perform a text analysis - we need to load a specific package: ManifestoR. 
+To load the Manifesto Corpus, which is a subclass of a Corpus object - the one we need to perform a text analysis - we need to load a specific package: ManifestoR. 
 
 With the function `mp_setapikey` we can easily load the API key that is needed in order to access the website. We then use the `mp_corpus` function to access documents in the ManifestoCorpus that we can directly use for our analysis.  
 
@@ -126,7 +125,6 @@ We will use data from the electoral programmes in the United Kingdom to perform 
 We use the quanteda `corpus()` to create the Corpus object from available sources, letting it auto-generate document names based on the manifesto_id and a within document running number, as we can see in `corpus(docid_field = "manifesto_id", unique_docnames = FALSE)`. 
 
 It is also useful to understand how document-level variables are structured with `docvars()`, since they represent metadata information. 
-
 ```{r}
 # install.packages("manifestoR")
 library(manifestoR)
@@ -143,9 +141,8 @@ manifesto_corpus <- uk_electoral_programmes %>%
 manifesto_corpus
 
 manifesto_corpus %>%
-  docvars() 
-
-
+  docvars() %>% 
+  names()
 ```
 
 ## Subsetting the Corpus
@@ -153,8 +150,6 @@ manifesto_corpus %>%
 We will do the following analyses using only one party in the English parliament. We will take the Scottish National Party, subsetting the corpus with `corpus_subset()` and indicating a logical condition corresponding to the code of the party. 
 
 To check to which code the Scottish National Party corresponds, we looked at the MPDataset, containing all the information on the electoral programs, and we quickly subsetted it for our purposes. 
-
-
 ```{r}
 library(readr)
 MPDataset <- read_csv("MPDataset_MPDS2021a.csv")
@@ -166,13 +161,11 @@ MPD_uk_parties <- MPDataset %>%
 
 scotland_corpus <- manifesto_corpus %>%
   corpus_subset(party == "51902")
-
 ```
 
 ## Tokenization
 
 Tokenization is particularly important for pre-processing and cleaning the texts. It is possible to easily remove numbers, punctuation or stopwords. Moreover, it is simple to transform all text to lower case or stem words. 
-
 ```{r}
 tokenized_manifesto <- scotland_corpus %>%
   tokens() %>% 
@@ -192,11 +185,11 @@ We are now able to construct our document-feature matrix.
 The ManifestoCorpus requires some stardand preprocessing, plus since we want to analyse specific topics regarding the Scottish National Party, we subset specific cmp codes and the documents structure. 
 
 In this code snippet we follow this process:
+
 * drop all quasi-sentences with headline codes (“H”), uncoded (“0”,“000”) and with codes missing (NA). 
 * group all quasi-sentences coded with the same code to one document
-* transform term frequencies using the `dfm_weight()` function that to count the proportion of words per document `(scheme = "prop")`.
+* transform term frequencies using the `dfm_weight()` function that to count the proportion of words per document `(scheme = "prop")`
 * subset the dfm features for three specific codes: **European Union: Positive** (108), **European Union: Negative** (110) and **Federalism** (301). 
-
 ```{r}
 manifesto_dfm <- tokenized_manifesto %>% 
   dfm() %>% 
@@ -213,7 +206,6 @@ manifesto_dfm
 ## Plotting frequencies
 
 Going through a classical quantitative text analysis, you may want to plot the most frequent terms, especially for exploratory purposes. Then the `textstat_frequency()` function fits perfectly for you. It simply extracts the most frequent terms (here grouped by the cmp codes we chose precedently) and converts them to a data frame that here is plotted with the ggplot package. 
-.
 ```{r}
 feature_frequencies_cat <- manifesto_dfm %>% textstat_frequency(n = 10, group = cmp_code)
 
@@ -224,20 +216,17 @@ feature_frequencies_cat %>%
   labs(x = NULL, y = "share of words per category") +
   facet_wrap(~cmp_code, ncol = 2, scales = "free") +
   coord_flip()
-
 ```
 
 ## Keyword in context search 
 
 Quanteda also provides an effective method for reading text passages based on key words. `kwic()` ("keyword in context") allows to do it for a text string or pattern. 
 Specifically here we choose the keyword "Brexit", and we select the 10 words around (before and after) that specific word. 
-
 ```{r}
 scotland_corpus %>%
   tokens() %>%
   kwic(phrase("brexit"), window = 10) %>% 
   DT::datatable(caption = "Keywords in context", rownames = FALSE, options = list(scrollX = TRUE, pageLength = 5, lengthMenu = c(5, 10, 15, 20)))
-
 ```
  
 # Targeted sentiment analysis
@@ -245,7 +234,6 @@ scotland_corpus %>%
 Quanteda is also useful if we want to perform sentiment analysis. In the following example we perform targeted sentiment analysis. We use the whole manifesto corpus loaded at the beginning and tokenize it into words. We then keep only tokens that include the word “Brexit” as well as the ten words before and after every occurrence of it. 
 
 We use the sentiment dictionary constructed by Young & Soroka (2012) that is integrated in the package, stored in `data_dictionary_LSD2015`. It contains thousands of positive and negative words or word stems.
-
 ```{r}
 brexit_tokens <- manifesto_corpus %>%
   tokens() %>% 
@@ -257,60 +245,54 @@ brexit_sent <- brexit_tokens %>%
   dfm_group(party)
 
 print(brexit_sent)
-
 ```
 
 ## Plotting sentiment analysis
 
-To plot our sentiment analysis, we use the subsetted dataframe from MPDataset and we join it with our sent_df to get the name of the parties. 
+To plot our sentiment analysis, we use the subsetted dataframe from MPDataset and we join it with our sent_df to get the name of the parties.
 
 Here you can see two plots. The first illustrates frequencies of positive and negative words targeted to the word "Brexit" for each UK party. 
 
-In the second plot, we converted frequencies to a new measure score ("sent_score") where parties with more negative words relative to positive ones get a sent_score<0 and parties with more positive words relative to negative ones get a sent_score>0. Parties with a sent_score=0 are the ones which do not have the word Brexit in their electoral programmes, thus the dictionary did not label them. 
+In the second plot, we converted frequencies to a new measure score ("sent_score") where, using the natural logarithm, parties with more positive words relative to negative ones get a sent_score<0 and parties with more positive words relative to negative ones get a sent_score>0. Parties with a sent_score=0 are the ones which do not have the word 'Brexit' in their electoral programmes, thus the dictionary did not label them. 
 
-
+We added the option to drop non labelled parties at the beginnig for better visualization purposes. 
 ```{r}
 sent_df <- brexit_sent %>% 
   convert(to = "data.frame") %>% 
-  subset(!(doc_id %in% c("51330", "51420", "51621"))) %>% 
+  #subset(!(doc_id %in% c("51330", "51420", "51621"))) %>% #remove parties with no sentiment assignment
   rename(party = doc_id) 
-
-sent_df %>%
-  pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = value, y = party , fill= as.factor(name)))+
-  geom_bar(position="dodge", stat="identity", width= 0.5) +
-  #geom_segment(aes(xend=0, yend=party), color = "skyblue") +
-  #geom_point(size=3, fill =  alpha = 0.5) +
-  labs(title = "Sentiment frequency plot for 'Brexit'", y = "UK Parties", x = "Frequency", fill = "sentiment") +
-  theme_minimal()
 
 # joining the sentiment dataframe with the dataframe containing the parties names for each party code
 # transforming the joining variable into the same class
 MPD_uk_parties$party <-  as.character(MPD_uk_parties$party)
 
 # leftjoining the datasets 
-test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
+uk_joined <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
 
-
-sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
-
-sent_df %>% 
+# frequency plot
+uk_joined %>%
   pivot_longer(c(positive, negative)) %>% 
-  ggplot(aes(x = reorder(party, sent_score), y = sent_score)) + 
+  ggplot(aes(x = value, y = partyname , fill= as.factor(name)))+
+  geom_bar(position="dodge", stat="identity", width= 0.5) +
+  labs(title = "Sentiment frequency plot for 'Brexit'", y = "UK Parties", x = "Frequency", fill = "sentiment") +
+  theme_minimal()
+
+# manually create the score
+uk_joined$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
+
+# sentiment plot
+uk_joined %>% 
+  pivot_longer(c(positive, negative)) %>% 
+  ggplot(aes(x = reorder(partyname, sent_score), y = sent_score)) + 
   geom_point(size = 3, colour = "skyblue") +
   coord_flip() + 
-  labs(x = "Parties", y = "Estimated sentiment") +
-  scale_y_continuous(breaks = c( -1, 0, 1), labels = c("negative", "neutral", "positive")) +
+  labs(x = "UK Parties", y = "Estimated sentiment") +
+  scale_y_continuous(expand = c(0.1, 0.1), breaks = c( -1, 0, 1), labels = c("Negative", "Neutral", "Positive")) +
   theme_bw()
- 
-
-###TO DO
-#change names of parties
-
 ```
 
 
-# CREDITS 
+# Credits
 
 https://github.com/quanteda
 
