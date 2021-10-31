@@ -284,10 +284,13 @@ sent_df %>%
   labs(title = "Sentiment frequency plot for 'Brexit'", y = "UK Parties", x = "Frequency", fill = "sentiment") +
   theme_minimal()
 
+# joining the sentiment dataframe with the dataframe containing the parties names for each party code
+# transforming the joining variable into the same class
+MPD_uk_parties$party <-  as.character(MPD_uk_parties$party)
 
-#MPD_uk_parties<-  MPD_uk_parties %>% 
-#  as.character("party")
-#test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
+# leftjoining the datasets 
+test <- left_join(sent_df, MPD_uk_parties, by = "party", copy = TRUE )
+
 
 sent_df$sent_score <- log((sent_df$positive + 0.5) / (sent_df$negative + 0.5))
 
@@ -296,7 +299,7 @@ sent_df %>%
   ggplot(aes(x = reorder(party, sent_score), y = sent_score)) + 
   geom_point(size = 3, colour = "skyblue") +
   coord_flip() + 
-  labs(x = "Parties", y = "Estimated sentiment", ) +
+  labs(x = "Parties", y = "Estimated sentiment") +
   scale_y_continuous(breaks = c( -1, 0, 1), labels = c("negative", "neutral", "positive")) +
   theme_bw()
  
