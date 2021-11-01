@@ -19,7 +19,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-## Welcome to our tutorial!
+## Welcome to our tutorial! `r emo::ji("books")`
 
 In the following minutes we will go through the basics of the **Quanteda** package and make sense of what quantitative text analysis is in practice, with some (hopefully) interesting examples. 
 
@@ -32,7 +32,7 @@ In this session you will learn to:
 
 As already mentioned in the slides, we will make use of the Manifesto Project Database (see more on https://manifesto-project.wzb.eu/). 
 
-**Let's start!**
+**Let's start!** `r emo::ji("biceps")`
 
 ## Necessary packages
 
@@ -59,7 +59,7 @@ library(readtext)
 
 For our tutorial we don't need the other extension packages (.textmodels & .textplots), but maybe you need them for future use cases, so we included them in the code snippet.
 
-# Data Importing
+# Data Importing `r emo::ji("computer")`
 
 Since we are using the online database of the Manifesto Project for our tutorial, the way we import the data is a bit *special* (using an API-key). Normally, you maybe want to import a pre-formatted file that you have stored on your computer, or multiple files that are stored in a folder. In the following, you find some explanations how to import these kinds of data. 
 
@@ -111,7 +111,7 @@ str(dat_eu)
 These are just some of the multiple ways to load data with quanteda. For furher information (if you may want to know how to upload text with different encodings) take a look at https://tutorials.quanteda.io/import-data/. 
 
 
-# Working with ManifestoR - Corpus
+# Working with ManifestoR - Corpus `r emo::ji("paper")`
 
 To load the Manifesto Corpus, which is a subclass of a Corpus object - the one we need to perform a text analysis - we need to load a specific package: ManifestoR. 
 
@@ -201,7 +201,7 @@ manifesto_dfm <- tokenized_manifesto %>%
 manifesto_dfm
 ```
 
-# Some explorative analysis
+# Some explorative analysis `r emo::ji("search")`
 
 ## Plotting frequencies
 
@@ -229,7 +229,7 @@ scotland_corpus %>%
   DT::datatable(caption = "Keywords in context", rownames = FALSE, options = list(scrollX = TRUE, pageLength = 5, lengthMenu = c(5, 10, 15, 20)))
 ```
  
-# Targeted sentiment analysis
+# Targeted sentiment analysis `r emo::ji("angel")` `r emo::ji("devil")`
 
 Quanteda is also useful if we want to perform sentiment analysis. In the following example we perform targeted sentiment analysis. We use the whole manifesto corpus loaded at the beginning and tokenize it into words. We then keep only tokens that include the word “Brexit” as well as the ten words before and after every occurrence of it. 
 
