@@ -93,8 +93,8 @@ In this example, the directory "/txt/UDHR" contains text files (".txt”) of the
 
 You can generate document-level variables based on the file names using the **docvarnames** and **docvars** from argument. 
 
-- **\dvsep = "_"\** specifies the value separator in the filenames. 
-- **encoding = "ISO-8859-1"** determines character encodings of the texts.
+- dvsep = "_" specifies the value separator in the filenames. 
+- encoding = "ISO-8859-1" determines character encodings of the texts.
 ```{r}
 dat_udhr <- readtext(paste0(path_data, "/txt/UDHR/*"))
 
