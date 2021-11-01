@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ## Welcome to our tutorial! `r emo::ji("books")`
 
-In the following minutes we will go through the basics of the **Quanteda** package and make sense of what quantitative text analysis is in practice, with some (hopefully) interesting examples. 
+In the following minutes we will go through the basics of the **Quanteda** package and make sense of what quantitative text analysis is in practice, with some 'policy geek' examples. 
 
 In this session you will learn to:
 
@@ -119,7 +119,7 @@ With the function `mp_setapikey` we can easily load the API key that is needed i
 
 As we know from the presentation, a Corpus consists of many documents. In the `ManifestoCorpus`, documents can be indexed via their `manifesto_id`, which is an identification code formed by the CMP party code, an underscore, and either the election year, if unambiguous, or the election year and month or via their position in the corpus. For further information check their amazing tutorial on [using the Manifesto Corpus with quanteda](https://manifesto-project.wzb.eu/down/tutorials/quanteda). 
 
-## Our subsetted Corpus for this tutorial
+## Our Corpus for this tutorial
 We will use data from the electoral programmes in the United Kingdom to perform some basics of quantitative text analysis and a sentiment analysis. With the function `names(uk_electoral_programmes)`we can visualize how documents are named. The names indeed consist of the code of the parties on the left of underscore, and the date of the documents on the right side of the underscore.
 
 We use the quanteda `corpus()` to create the Corpus object from available sources, letting it auto-generate document names based on the manifesto_id and a within document running number, as we can see in `corpus(docid_field = "manifesto_id", unique_docnames = FALSE)`. 
