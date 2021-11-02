@@ -26,7 +26,7 @@ The goals of this session are to (1) make you familiar with the idea possible ap
 - [quanteda cheat sheet ](https://raw.githubusercontent.com/rstudio/cheatsheets/master/quanteda.pdf)
 - [Hands-on quanteda tutorial](https://tutorials.quanteda.io/)
 - [Workshop-slides by quanteda creator Kenneth Bennoit](https://www.uni-muenster.de/imperia/md/content/ifpol/grasp/2019-06-27_muenster.pdf)
-- [More about the Manifesto Project ](manifesto-project.wzb.eu/)
+- [More about the Manifesto Project and Quanteda](https://manifesto-project.wzb.eu/down/tutorials/quanteda#grammar-and-logic-of-quanteda)
 
 
 ## License
